@@ -46,24 +46,32 @@ const { Rect } = require( "./CanvasUtils" );
 // Constants
 
 const SQUARE_SIZE = 75;
-const HEIGHT = 10;
-const ROW_LENGTH = 7;
 const SPACING = 10;
 
 // Dimensions
 
 class StackerGrid {
 
-    static WIDTH = ROW_LENGTH * ( SQUARE_SIZE + SPACING );
-    static HEIGHT = HEIGHT * ( SQUARE_SIZE + SPACING );
+    // Constants
+
+    static get SQUARE_SIZE() {
+        return SQUARE_SIZE;
+    }
+
+    static get SPACING() {
+        return SPACING;
+    }
 
     // Populate grid
-    constructor( x, y, ctx ) {
+    constructor( x, y, rows, columns, ctx ) {
+
+        this.rows = rows;
+        this.columns = columns;
         this.grid = [];
 
-        for ( let i=0; i < HEIGHT; i++ ) {
+        for ( let i=0; i < rows; i++ ) {
             let row = []
-            for ( let j=0; j < ROW_LENGTH; j++ ) {
+            for ( let j=0; j < columns; j++ ) {
                 row.push(
                     new Rect( 
                         x + j * SQUARE_SIZE + SPACING,
@@ -82,7 +90,7 @@ class StackerGrid {
 
     drawAll() {
 
-        for ( let i=0; i < HEIGHT; i++ ) {
+        for ( let i=0; i < this.rows; i++ ) {
             this.drawRow( i );
         }
 
@@ -92,7 +100,7 @@ class StackerGrid {
     drawRow( rowi ) {
 
         let row = this.grid[rowi];
-        for ( let i=0; i < ROW_LENGTH; i++ )
+        for ( let i=0; i < this.columns; i++ )
             row[i].fill();
         
     }
@@ -107,22 +115,44 @@ class StackerGrid {
 
     }
 
+    // Set full row to one color
+    setRow( rowi, color ) {
+        this.setWindow( rowi, 0, this.columns, color );
+    }
+
+    // Utility methods
+
+    static calculateWidth( columns ) {
+        return columns * ( SQUARE_SIZE + SPACING );
+    }
+
+    static calculateHeight( row ) {
+        return rows * ( SQUARE_SIZE + SPACING );
+    }
+
 }
 
-module.exports = { StackerGrid, ROW_LENGTH, HEIGHT } ;
+module.exports = StackerGrid;
 
 },{"./CanvasUtils":1}],3:[function(require,module,exports){
 
 // Main render script
 
-// TODO Implement window setting
 // TODO Implement stacker animation
 // TODO Add game logic
 
 let CanvasUtils = require( "./CanvasUtils" )
-let StackerGridModule = require( "./StackerGrid" )
+let StackerGrid = require( "./StackerGrid" )
 
-StackerGrid = StackerGridModule.StackerGrid
+// Constants
+
+// Grid
+
+const ROWS = 10;
+const COLUMNS = 7;
+const GRID_X = window.innerWidth / 2 - StackerGrid.calculateWidth( COLUMNS )/2;
+const GRID_Y = 25;
+
 
 // Colors
 
@@ -139,23 +169,67 @@ document.querySelector( "body" ).appendChild( canvas );
 
 let ctx = canvas.getContext( "2d" );
 
-// Game data
+// Game state
 
-console.log( StackerGridModule );
-
-let grid = new StackerGrid( window.innerWidth / 2 - StackerGridModule.WIDTH/2, 25, ctx );
-let currentRow = StackerGridModule.HEIGHT - 1;
+let grid = new StackerGrid( GRID_X, GRID_Y, ROWS, COLUMNS, ctx );
+let currentRow = ROWS - 1;
+let windowStart =0;
 let windowLength = 3;
+let animationDirection = 1;
 let speed = 1;
 
 // Render function
 
+// Initial draw
 grid.drawAll();
+
+// Event handlers
+
+// Move up one row
+function spaceKey() {
+    if ( currentRow > 0 )
+        currentRow--;
+}
+
+// Event Listener
+window.addEventListener( "keydown", ( event ) => {
+    if ( event.key = " " ) {
+        spaceKey();
+    }
+} );
+
+// Animations
+
+// Animate window movement
+function moveWindow() {
+
+    // Check for need in a change of direction
+    if ( windowStart + windowLength === COLUMNS ) {
+        animationDirection = -1;
+    } else if ( windowStart === 0 ) {
+        animationDirection = 1;
+    }
+
+    // Move window
+    windowStart += animationDirection;
+
+    setTimeout( clearWindow, 1000 );
+
+}
+
+function clearWindow() {
+    grid.setRow( currentRow, RED );
+    moveWindow();
+}
+
+moveWindow();
 
 function render() {
 
-    // grid.setWindow( currentRow, 0, windowLength, BLUE );
-    // grid.drawRow( currentRow );
+    grid.setWindow( currentRow, windowStart, windowLength, BLUE );
+    
+    // Update current row
+    grid.drawRow( currentRow );
 
     window.requestAnimationFrame( render );
 

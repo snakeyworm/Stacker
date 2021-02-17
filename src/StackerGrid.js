@@ -6,24 +6,32 @@ const { Rect } = require( "./CanvasUtils" );
 // Constants
 
 const SQUARE_SIZE = 75;
-const HEIGHT = 10;
-const ROW_LENGTH = 7;
 const SPACING = 10;
 
 // Dimensions
 
 class StackerGrid {
 
-    static WIDTH = ROW_LENGTH * ( SQUARE_SIZE + SPACING );
-    static HEIGHT = HEIGHT * ( SQUARE_SIZE + SPACING );
+    // Constants
+
+    static get SQUARE_SIZE() {
+        return SQUARE_SIZE;
+    }
+
+    static get SPACING() {
+        return SPACING;
+    }
 
     // Populate grid
-    constructor( x, y, ctx ) {
+    constructor( x, y, rows, columns, ctx ) {
+
+        this.rows = rows;
+        this.columns = columns;
         this.grid = [];
 
-        for ( let i=0; i < HEIGHT; i++ ) {
+        for ( let i=0; i < rows; i++ ) {
             let row = []
-            for ( let j=0; j < ROW_LENGTH; j++ ) {
+            for ( let j=0; j < columns; j++ ) {
                 row.push(
                     new Rect( 
                         x + j * SQUARE_SIZE + SPACING,
@@ -42,7 +50,7 @@ class StackerGrid {
 
     drawAll() {
 
-        for ( let i=0; i < HEIGHT; i++ ) {
+        for ( let i=0; i < this.rows; i++ ) {
             this.drawRow( i );
         }
 
@@ -52,7 +60,7 @@ class StackerGrid {
     drawRow( rowi ) {
 
         let row = this.grid[rowi];
-        for ( let i=0; i < ROW_LENGTH; i++ )
+        for ( let i=0; i < this.columns; i++ )
             row[i].fill();
         
     }
@@ -67,6 +75,21 @@ class StackerGrid {
 
     }
 
+    // Set full row to one color
+    setRow( rowi, color ) {
+        this.setWindow( rowi, 0, this.columns, color );
+    }
+
+    // Utility methods
+
+    static calculateWidth( columns ) {
+        return columns * ( SQUARE_SIZE + SPACING );
+    }
+
+    static calculateHeight( row ) {
+        return rows * ( SQUARE_SIZE + SPACING );
+    }
+
 }
 
-module.exports = { StackerGrid, ROW_LENGTH, HEIGHT } ;
+module.exports = StackerGrid;
