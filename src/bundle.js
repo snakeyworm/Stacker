@@ -232,7 +232,7 @@ function spaceKey() {
 
         // Render intersection
         windowStart = intersection[0];
-        windowLength = lastRow.length > 0 ? getIntersectionLength( window, lastRow ) + 1 : 3;
+        windowLength = intersection[1] - intersection[0] + 1; // lastRow.length > 0 ? getIntersectionLength( window, lastRow ) + 1 : 3;
 
         // Remove non-intersecting block
         grid.setRow( currentRow, RED );

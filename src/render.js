@@ -63,14 +63,6 @@ function intersectRange( r1, r2 ) {
     
 }
 
-function getIntersectionLength( r1, r2 ) { 
-    if ( Math.max( r1[0], r2[0] ) <= Math.min( r2[1], r1[1] ) ) {
-        return Math.min( r2[1], r1[1] ) - Math.max( r1[0], r2[0] );
-    }
-    console.error( "No intersection found" );
-    return Number.NaN;
-}
-
 // Event handlers
 
 // Move up one row
@@ -95,7 +87,7 @@ function spaceKey() {
 
         // Render intersection
         windowStart = intersection[0];
-        windowLength = lastRow.length > 0 ? getIntersectionLength( window, lastRow ) + 1 : 3;
+        windowLength = intersection[1] - intersection[0] + 1;
 
         // Remove non-intersecting block
         grid.setRow( currentRow, RED );
