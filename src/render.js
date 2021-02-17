@@ -1,6 +1,7 @@
 
 // Main render script
 
+// TODO Implement window setting
 // TODO Implement stacker animation
 // TODO Add game logic
 

@@ -115,6 +115,7 @@ module.exports = { StackerGrid, ROW_LENGTH, HEIGHT } ;
 
 // Main render script
 
+// TODO Implement window setting
 // TODO Implement stacker animation
 // TODO Add game logic
 
