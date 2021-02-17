@@ -1,10 +1,8 @@
 
 // Main render script
 
-// TODO Implement stacker animation
 // TODO Add game logic
 
-let CanvasUtils = require( "./CanvasUtils" )
 let StackerGrid = require( "./StackerGrid" )
 
 // Constants
@@ -35,28 +33,78 @@ let ctx = canvas.getContext( "2d" );
 // Game state
 
 let grid = new StackerGrid( GRID_X, GRID_Y, ROWS, COLUMNS, ctx );
+let lastRow = [];
 let currentRow = ROWS - 1;
-let windowStart =0;
+let windowStart = 0;
 let windowLength = 3;
 let animationDirection = 1;
-let speed = 1;
+let speed = 1; // TODO Implement soon
+let gameOver = false;
 
-// Render function
+// Animation state
+let animationDelay = null;
 
-// Initial draw
-grid.drawAll();
+// Utility functions
+
+// Return intersection of two ranges
+// Note this function will return the first range
+// if the second is empty
+function intersectRange( r1, r2 ) {
+
+    let min = r1[0] < r2[0]  ? r1 : r2;
+    let max = min === r1 ? r2 : r1;
+
+    if ( min[1] < max[0] )
+        return null
+
+    return [ max[0], min[1] < max[1] ? min[1] : max[1] ];
+    
+}
 
 // Event handlers
 
 // Move up one row
 function spaceKey() {
-    if ( currentRow > 0 )
+
+    if ( currentRow <= 0 ) {
+        clearTimeout( animationDelay );
+        console.log( "Game Over!" ); // TODO Replace when done testing
+        gameOver = true;
+        return
+    }
+
+    let window = [ windowStart, windowStart + windowLength - 1 ];
+    let intersection = intersectRange( window, lastRow );
+
+    // Check if window is in range
+    if ( lastRow === [] || intersection ) {
+        // Match made
+
+        // Render intersection
+        windowStart = intersection[0];
+        windowLength = intersection[1] - intersection[0] + 1;
+
+        // Remove non-intersecting block
+        grid.setRow( currentRow, RED );
+        renderRow( currentRow );
+
+        // Move to next row
         currentRow--;
+        lastRow = window;
+
+    } else {
+        // Player lost
+        console.log( "Game over!" );
+        gameOver = true;
+    }
+
+    
+
 }
 
 // Event Listener
 window.addEventListener( "keydown", ( event ) => {
-    if ( event.key = " " ) {
+    if ( event.code === "Space" ) {
         spaceKey();
     }
 } );
@@ -76,7 +124,7 @@ function moveWindow() {
     // Move window
     windowStart += animationDirection;
 
-    setTimeout( clearWindow, 1000 );
+   animationDelay = setTimeout( clearWindow, 1000 );
 
 }
 
@@ -87,13 +135,28 @@ function clearWindow() {
 
 moveWindow();
 
+// Render functions
+
+function renderRow( row ) {
+
+    // Update current row
+
+    grid.setWindow( row, windowStart, windowLength, BLUE );
+    grid.drawRow( row );
+
+}
+
+// Initial draw
+grid.drawAll();
+
 function render() {
 
-    grid.setWindow( currentRow, windowStart, windowLength, BLUE );
-    
-    // Update current row
-    grid.drawRow( currentRow );
+    // Cancel render if game over
+    if ( gameOver )
+        return;
 
+    renderRow( currentRow );
+    
     window.requestAnimationFrame( render );
 
 }
