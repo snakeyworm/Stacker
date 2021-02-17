@@ -5,9 +5,14 @@
 // TODO Add game logic
 
 let CanvasUtils = require( "./CanvasUtils" )
-let StackerGrid = require( "./StackerGrid" )
+let StackerGridModule = require( "./StackerGrid" )
 
-console.log( "Hello World!" );
+StackerGrid = StackerGridModule.StackerGrid
+
+// Colors
+
+const RED = "#ff0000";
+const BLUE = "#0000ff";
 
 // DOM
 
@@ -21,16 +26,21 @@ let ctx = canvas.getContext( "2d" );
 
 // Game data
 
-let grid = new StackerGrid( 25, 25, ctx );
-let currentRow = 0;
+console.log( StackerGridModule );
+
+let grid = new StackerGrid( window.innerWidth / 2 - StackerGridModule.WIDTH/2, 25, ctx );
+let currentRow = StackerGridModule.HEIGHT - 1;
 let windowLength = 3;
 let speed = 1;
 
 // Render function
 
+grid.drawAll();
+
 function render() {
 
-    grid.drawAll();
+    // grid.setWindow( currentRow, 0, windowLength, BLUE );
+    // grid.drawRow( currentRow );
 
     window.requestAnimationFrame( render );
 

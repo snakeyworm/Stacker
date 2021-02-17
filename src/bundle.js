@@ -38,14 +38,26 @@ module.exports = {
 }
 
 },{}],2:[function(require,module,exports){
+
+// Class for representing game grid
+
 const { Rect } = require( "./CanvasUtils" );
+
+// Constants
 
 const SQUARE_SIZE = 75;
 const HEIGHT = 10;
 const ROW_LENGTH = 7;
+const SPACING = 10;
+
+// Dimensions
 
 class StackerGrid {
 
+    static WIDTH = ROW_LENGTH * ( SQUARE_SIZE + SPACING );
+    static HEIGHT = HEIGHT * ( SQUARE_SIZE + SPACING );
+
+    // Populate grid
     constructor( x, y, ctx ) {
         this.grid = [];
 
@@ -54,8 +66,8 @@ class StackerGrid {
             for ( let j=0; j < ROW_LENGTH; j++ ) {
                 row.push(
                     new Rect( 
-                        x + j * SQUARE_SIZE + 5,
-                        y + i * SQUARE_SIZE + 5,
+                        x + j * SQUARE_SIZE + SPACING,
+                        y + i * SQUARE_SIZE + SPACING,
                         SQUARE_SIZE,
                         SQUARE_SIZE,
                         ctx
@@ -71,17 +83,33 @@ class StackerGrid {
     drawAll() {
 
         for ( let i=0; i < HEIGHT; i++ ) {
-            let row = this.grid[i];
-            for ( let j=0; j < ROW_LENGTH; j++ ) {
-                row[j].fill();
-            }
+            this.drawRow( i );
         }
+
+    }
+
+    // Draw specified row
+    drawRow( rowi ) {
+
+        let row = this.grid[rowi];
+        for ( let i=0; i < ROW_LENGTH; i++ )
+            row[i].fill();
+        
+    }
+    
+    // Change a specific slice of a row to a specified color
+    setWindow( rowi, windowStart, len, color ) {
+        
+        let row = this.grid[rowi];
+
+        for ( let i=windowStart; i < windowStart + len; i++ )
+            row[i].setFillStyle( color );
 
     }
 
 }
 
-module.exports = StackerGrid;
+module.exports = { StackerGrid, ROW_LENGTH, HEIGHT } ;
 
 },{"./CanvasUtils":1}],3:[function(require,module,exports){
 
@@ -91,9 +119,14 @@ module.exports = StackerGrid;
 // TODO Add game logic
 
 let CanvasUtils = require( "./CanvasUtils" )
-let StackerGrid = require( "./StackerGrid" )
+let StackerGridModule = require( "./StackerGrid" )
 
-console.log( "Hello World!" );
+StackerGrid = StackerGridModule.StackerGrid
+
+// Colors
+
+const RED = "#ff0000";
+const BLUE = "#0000ff";
 
 // DOM
 
@@ -107,16 +140,21 @@ let ctx = canvas.getContext( "2d" );
 
 // Game data
 
-let grid = new StackerGrid( 25, 25, ctx );
-let currentRow = 0;
+console.log( StackerGridModule );
+
+let grid = new StackerGrid( window.innerWidth / 2 - StackerGridModule.WIDTH/2, 25, ctx );
+let currentRow = StackerGridModule.HEIGHT - 1;
 let windowLength = 3;
 let speed = 1;
 
 // Render function
 
+grid.drawAll();
+
 function render() {
 
-    grid.drawAll();
+    // grid.setWindow( currentRow, 0, windowLength, BLUE );
+    // grid.drawRow( currentRow );
 
     window.requestAnimationFrame( render );
 
