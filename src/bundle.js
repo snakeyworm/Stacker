@@ -144,13 +144,15 @@ let StackerGrid = require( "./StackerGrid" )
 
 // Constants
 
+// Game
+const SPEED_FACTOR = 600;
+
 // Grid
 
 const ROWS = 10;
 const COLUMNS = 7;
 const GRID_X = window.innerWidth / 2 - StackerGrid.calculateWidth( COLUMNS )/2;
 const GRID_Y = 25;
-
 
 // Colors
 
@@ -198,6 +200,14 @@ function intersectRange( r1, r2 ) {
     
 }
 
+function getIntersectionLength( r1, r2 ) { 
+    if ( Math.max( r1[0], r2[0] ) <= Math.min( r2[1], r1[1] ) ) {
+        return Math.min( r2[1], r1[1] ) - Math.max( r1[0], r2[0] );
+    }
+    console.error( "No intersection found" );
+    return Number.NaN;
+}
+
 // Event handlers
 
 // Move up one row
@@ -212,6 +222,9 @@ function spaceKey() {
 
     let window = [ windowStart, windowStart + windowLength - 1 ];
     let intersection = intersectRange( window, lastRow );
+    
+    // To account for one block intersection case 
+    // TODO Eventually find a way to handle this better
 
     // Check if window is in range
     if ( lastRow === [] || intersection ) {
@@ -219,20 +232,16 @@ function spaceKey() {
 
         // Render intersection
         windowStart = intersection[0];
-        windowLength = intersection[1] - intersection[0] + 1;
+        windowLength = lastRow.length > 0 ? getIntersectionLength( window, lastRow ) + 1 : 3;
 
         // Remove non-intersecting block
-
-        clearTimeout( animationDelay );
         grid.setRow( currentRow, RED );
         renderRow( currentRow );
 
         // Move to next row
         currentRow--;
-        lastRow = window;
+        lastRow = intersection
 
-        windowStart--;
-        moveWindow();
 
     } else {
         // Player lost
@@ -266,7 +275,7 @@ function moveWindow() {
     // Move window
     windowStart += animationDirection;
 
-   animationDelay = setTimeout( clearWindow, 1000 );
+   animationDelay = setTimeout( clearWindow, SPEED_FACTOR/speed );
 
 }
 
