@@ -4,13 +4,13 @@
 // Class for rectangles
 class Rect {
 
-    constructor( x, y, width, height, ctx ) {
+    constructor( x, y, width, height, fillStyle, ctx ) {
        this.x = x;
        this.y = y;
        this.width = width;
        this.height = height; 
        this.ctx = ctx
-       this.fillStyle = "#ff0000"
+       this.fillStyle = fillStyle
     }
 
     setFillStyle( color ) {

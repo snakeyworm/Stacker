@@ -1,14 +1,18 @@
 
 // Main render script
 
-// TODO Add game logic
+// TODO Add finishing touches(e.g. Sound, Win/Loss message with a linear gradient )
 
 let StackerGrid = require( "./StackerGrid" )
 
 // Constants
 
 // Game
-const SPEED_FACTOR = 600;
+
+const SPEED_START = 500;
+const SPEED_FACTOR = 0.6;
+const WINDOW_LIMIT_1 = 4;
+const WINDOW_LIMIT_2 = 7;
 
 // Grid
 
@@ -19,8 +23,8 @@ const GRID_Y = 25;
 
 // Colors
 
-const RED = "#ff0000";
-const BLUE = "#0000ff";
+const GREY = "#101010";
+const BLUE = "#0000ee";
 
 // DOM
 
@@ -32,16 +36,22 @@ document.querySelector( "body" ).appendChild( canvas );
 
 let ctx = canvas.getContext( "2d" );
 
+let textGradient = ctx.createLinearGradient(  window.innerWidth/2 - 100, 0, window.innerWidth/2 + 100, 0 );
+textGradient.addColorStop( 0, "green" );
+textGradient.addColorStop( 0.4, "magenta" );
+textGradient.addColorStop( 0.7, "magenta" );
+textGradient.addColorStop( 1, "blue" );
+
 // Game state
 
-let grid = new StackerGrid( GRID_X, GRID_Y, ROWS, COLUMNS, ctx );
+let grid = new StackerGrid( GRID_X, GRID_Y, ROWS, COLUMNS, GREY, ctx );
 let lastRow = [];
 let currentRow = ROWS - 1;
 let windowStart = 0;
 let windowLength = 3;
 let animationDirection = 1;
 let speed = 1; // TODO Implement soon
-let gameOver = false;
+let gameOverMsg = null;
 
 // Animation state
 let animationDelay = null;
@@ -65,46 +75,63 @@ function intersectRange( r1, r2 ) {
 
 // Event handlers
 
+// Handle game over event
+function gameOver() {
+
+    // Stop rendering
+    currentRow = null
+    clearTimeout( animationDelay );
+
+    // Display message
+
+    ctx.font = "60px Arial";
+    ctx.fillStyle = textGradient;
+    ctx.textAlign = "center";
+    ctx.fillText( gameOverMsg, window.innerWidth / 2, window.innerHeight / 3 );
+
+    gameOverMsg = null;
+
+}
+
 // Move up one row
 function spaceKey() {
 
-    if ( currentRow <= 0 ) {
-        clearTimeout( animationDelay );
-        console.log( "Game Over!" ); // TODO Replace when done testing
-        gameOver = true;
-        return
-    }
-
     let window = [ windowStart, windowStart + windowLength - 1 ];
     let intersection = intersectRange( window, lastRow );
-    
-    // To account for one block intersection case 
-    // TODO Eventually find a way to handle this better
 
     // Check if window is in range
     if ( lastRow === [] || intersection ) {
         // Match made
+
+        if ( currentRow <= 0 ) {
+            gameOverMsg = "Winner!";
+            return
+        }
 
         // Render intersection
         windowStart = intersection[0];
         windowLength = intersection[1] - intersection[0] + 1;
 
         // Remove non-intersecting block
-        grid.setRow( currentRow, RED );
+        grid.setRow( currentRow, GREY );
         renderRow( currentRow );
+
+        if ( currentRow === WINDOW_LIMIT_2 && windowLength > 2 )
+            windowLength = 2;
+
+        if ( currentRow === WINDOW_LIMIT_1 )
+            windowLength = 1;
+
 
         // Move to next row
         currentRow--;
-        lastRow = intersection
-
+        lastRow = intersection;
+        speed += SPEED_FACTOR;
 
     } else {
         // Player lost
-        console.log( "Game over!" );
-        gameOver = true;
+        gameOverMsg = "Game Over!";
     }
-
-    
 
 }
 
@@ -130,12 +157,12 @@ function moveWindow() {
     // Move window
     windowStart += animationDirection;
 
-   animationDelay = setTimeout( clearWindow, SPEED_FACTOR/speed );
+   animationDelay = setTimeout( clearWindow, SPEED_START/speed );
 
 }
 
 function clearWindow() {
-    grid.setRow( currentRow, RED );
+    grid.setRow( currentRow, GREY );
     moveWindow();
 }
 
@@ -157,11 +184,11 @@ grid.drawAll();
 
 function render() {
 
-    // Cancel render if game over
-    if ( gameOver )
-        return;
+    if ( currentRow !== null && !gameOverMsg )
+        renderRow( currentRow );
 
-    renderRow( currentRow );
+    if ( gameOverMsg )
+        gameOver();
     
     window.requestAnimationFrame( render );
 

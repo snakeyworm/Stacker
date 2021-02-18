@@ -6,7 +6,6 @@ const { Rect } = require( "./CanvasUtils" );
 // Constants
 
 const SQUARE_SIZE = 75;
-const SPACING = 10;
 
 // Dimensions
 
@@ -23,7 +22,7 @@ class StackerGrid {
     }
 
     // Populate grid
-    constructor( x, y, rows, columns, ctx ) {
+    constructor( x, y, rows, columns, color, ctx ) {
 
         this.rows = rows;
         this.columns = columns;
@@ -34,10 +33,11 @@ class StackerGrid {
             for ( let j=0; j < columns; j++ ) {
                 row.push(
                     new Rect( 
-                        x + j * SQUARE_SIZE + SPACING,
-                        y + i * SQUARE_SIZE + SPACING,
+                        x + j * SQUARE_SIZE,
+                        y + i * SQUARE_SIZE,
                         SQUARE_SIZE,
                         SQUARE_SIZE,
+                        color,
                         ctx
                     )
                 )
@@ -83,11 +83,11 @@ class StackerGrid {
     // Utility methods
 
     static calculateWidth( columns ) {
-        return columns * ( SQUARE_SIZE + SPACING );
+        return columns * SQUARE_SIZE;
     }
 
     static calculateHeight( row ) {
-        return rows * ( SQUARE_SIZE + SPACING );
+        return rows * SQUARE_SIZE;
     }
 
 }
