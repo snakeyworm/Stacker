@@ -180,6 +180,7 @@ const SPEED_START = 500;
 const SPEED_FACTOR = 0; // 0.6; TODO Reset when done
 const WINDOW_LIMIT_1 = 4;
 const WINDOW_LIMIT_2 = 7;
+const SPACE_COOLDOWN = 500;
 
 // Grid
 
@@ -229,7 +230,7 @@ let animationDirection = 1;
 let speed = 1;
 let gameOverMsg = null;
 let gameRunning = true;
-let lastEvent = {};
+let lastEvent = { timeStamp: 0 };
 
 // Animation state
 let animationDelay = null;
@@ -310,11 +311,13 @@ function spaceKey() {
         grid.setRow( currentRow, BLACK );
         renderRow( currentRow );
 
+        // Remove block if user has past easy rows
         if ( currentRow === WINDOW_LIMIT_2 && windowLength > 2 )
             windowLength = 2;
-
-        if ( currentRow === WINDOW_LIMIT_1 )
+        else if ( currentRow === WINDOW_LIMIT_1 )
             windowLength = 1;
+
+        windowStart = [ 0, COLUMNS - windowLength ][Math.floor( Math.random() * 2 )];
 
 
         // Move to next row
@@ -335,11 +338,14 @@ function spaceKey() {
 
 // Event Listener
 window.addEventListener( "keydown", ( event ) => {
-    console.log( event );
-    if ( event.code === "Space" && gameRunning ) {
+    // Allow event if game is running and COOLDOWN has passed
+    if ( 
+        event.code === "Space" &&
+        event.timeStamp - lastEvent.timeStamp > SPACE_COOLDOWN &&
+        gameRunning ) {
         spaceKey();
+        lastEvent = event;
     }
-    lastEvent = event;
 } );
 
 // Animations
