@@ -167,8 +167,6 @@ module.exports = StackerGrid;
 
 // Main render script
 
-// TODO Add finishing touches(e.g. Sound, Win/Loss message with a linear gradient )
-
 let StackerGrid = require( "./StackerGrid" );
 let Audio = require( "./Audio" );
 
@@ -177,7 +175,7 @@ let Audio = require( "./Audio" );
 // Game
 
 const SPEED_START = 500;
-const SPEED_FACTOR = 0; // 0.6; TODO Reset when done
+const SPEED_FACTOR = 0.6;
 const WINDOW_LIMIT_1 = 4;
 const WINDOW_LIMIT_2 = 7;
 const SPACE_COOLDOWN = 500;
