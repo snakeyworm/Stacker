@@ -3,14 +3,15 @@
 
 // TODO Add finishing touches(e.g. Sound, Win/Loss message with a linear gradient )
 
-let StackerGrid = require( "./StackerGrid" )
+let StackerGrid = require( "./StackerGrid" );
+let Audio = require( "./Audio" );
 
 // Constants
 
 // Game
 
 const SPEED_START = 500;
-const SPEED_FACTOR = 0.6;
+const SPEED_FACTOR = 0; // 0.6; TODO Reset when done
 const WINDOW_LIMIT_1 = 4;
 const WINDOW_LIMIT_2 = 7;
 
@@ -23,8 +24,15 @@ const GRID_Y = 25;
 
 // Colors
 
-const GREY = "#101010";
+const BLACK = "#101010";
 const BLUE = "#0000ee";
+
+// SOUND
+
+const MUSIC = "http://localhost:8080/audio/stacker_music.mp3";
+const WINDOW_MATCH = "http://localhost:8080/audio/window_match.mp3";
+const WIN = "http://localhost:8080/audio/win.mp3";
+const GAME_OVER = "http://localhost:8080/audio/game_over.mp3"
 
 // DOM
 
@@ -42,16 +50,20 @@ textGradient.addColorStop( 0.4, "magenta" );
 textGradient.addColorStop( 0.7, "magenta" );
 textGradient.addColorStop( 1, "blue" );
 
+Audio.loadAudio( Audio.music, MUSIC );
+
 // Game state
 
-let grid = new StackerGrid( GRID_X, GRID_Y, ROWS, COLUMNS, GREY, ctx );
+let grid = new StackerGrid( GRID_X, GRID_Y, ROWS, COLUMNS, BLACK, ctx );
 let lastRow = [];
 let currentRow = ROWS - 1;
 let windowStart = 0;
 let windowLength = 3;
 let animationDirection = 1;
-let speed = 1; // TODO Implement soon
+let speed = 1;
 let gameOverMsg = null;
+let gameRunning = true;
+let lastEvent = {};
 
 // Animation state
 let animationDelay = null;
@@ -73,14 +85,18 @@ function intersectRange( r1, r2 ) {
     
 }
 
+
+
 // Event handlers
 
 // Handle game over event
 function gameOver() {
 
     // Stop rendering
-    currentRow = null
+    gameRunning = false;
     clearTimeout( animationDelay );
+
+    Audio.music.audio.pause();
 
     // Display message
 
@@ -103,17 +119,29 @@ function spaceKey() {
     if ( lastRow === [] || intersection ) {
         // Match made
 
+        // Player has won
         if ( currentRow <= 0 ) {
+
+            // Play win sound
+            Audio.loadAudio( Audio.effect, WIN );
+            Audio.effect.audio.play();
+
             gameOverMsg = "Winner!";
             return
+
         }
+
+        // Play success sound
+        Audio.loadAudio( Audio.effect, WINDOW_MATCH );
+        Audio.effect.audio.play();
+
 
         // Render intersection
         windowStart = intersection[0];
         windowLength = intersection[1] - intersection[0] + 1;
 
         // Remove non-intersecting block
-        grid.setRow( currentRow, GREY );
+        grid.setRow( currentRow, BLACK );
         renderRow( currentRow );
 
         if ( currentRow === WINDOW_LIMIT_2 && windowLength > 2 )
@@ -130,6 +158,10 @@ function spaceKey() {
 
     } else {
         // Player lost
+
+        Audio.loadAudio( Audio.effect, GAME_OVER )
+        Audio.effect.audio.play();
+
         gameOverMsg = "Game Over!";
     }
 
@@ -137,9 +169,11 @@ function spaceKey() {
 
 // Event Listener
 window.addEventListener( "keydown", ( event ) => {
-    if ( event.code === "Space" ) {
+    console.log( event );
+    if ( event.code === "Space" && gameRunning ) {
         spaceKey();
     }
+    lastEvent = event;
 } );
 
 // Animations
@@ -157,12 +191,12 @@ function moveWindow() {
     // Move window
     windowStart += animationDirection;
 
-   animationDelay = setTimeout( clearWindow, SPEED_START/speed );
+    animationDelay = setTimeout( clearWindow, SPEED_START/speed );
 
 }
 
 function clearWindow() {
-    grid.setRow( currentRow, GREY );
+    grid.setRow( currentRow, BLACK );
     moveWindow();
 }
 
@@ -182,9 +216,15 @@ function renderRow( row ) {
 // Initial draw
 grid.drawAll();
 
+// Start music
+
+
 function render() {
 
-    if ( currentRow !== null && !gameOverMsg )
+    if ( Audio.music.audio.paused && gameRunning )
+        Audio.music.audio.play();
+
+    if ( gameRunning )
         renderRow( currentRow );
 
     if ( gameOverMsg )

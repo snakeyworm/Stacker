@@ -32,6 +32,4 @@ class Rect {
 
 }
 
-module.exports = {
-    Rect
-}
+module.exports = { Rect };
